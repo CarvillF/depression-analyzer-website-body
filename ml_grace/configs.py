@@ -4,9 +4,9 @@ Contains configuration information for easy access and updating
 
 import pandas as pd
 
-data_dir = '/home/ugrads/majors/gracee/CS2104/depression-analyzer-website-body/ml_grace/Depression Student Dataset.csv'
+data_dir = 'depression-analyzer-website-body/ml_grace/Depression Student Dataset.csv'
 test_ratio = 0.3
-num_trees = 10000
+num_trees = 1000
 
 sample = pd.DataFrame([{
     'Gender': 1,
