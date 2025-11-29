@@ -1,7 +1,10 @@
 import gradio as gr
-import random
+import sys
+import os
 
-import pandas as pd
+# Add ml_grace directory to path to import model utilities
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', 'ml_grace')))
+from model_utils import predict_both
 
 def analyze_risk(
     gender, age, academic_pressure, study_satisfaction, 
@@ -9,36 +12,43 @@ def analyze_risk(
     family_history, financial_stress
 ):
     """
-    Mock backend logic to simulate risk analysis.
-    Now predicts both Depression Risk and Suicidal Thoughts Risk.
+    Use trained ML models to predict depression and suicidal thoughts risk.
     """
-    # --- Depression Risk Calculation ---
-    dep_score = 0
-    if academic_pressure > 3: dep_score += 1
-    if study_satisfaction < 3: dep_score += 1
-    if sleep_duration in ["Less than 5 hours", "5-6 hours"]: dep_score += 1
-    if family_history == "Yes": dep_score += 1
-    if financial_stress > 3: dep_score += 1
-    # Study hours factor (mock)
-    if study_hours > 10: dep_score += 1 # Overworking
-    
-    is_depressed = dep_score >= 3
-    dep_result = "Depression Risk: HIGH" if is_depressed else "Depression Risk: LOW"
-    
-    # --- Suicidal Thoughts Risk Calculation (Mock) ---
-    # Based on higher stress and poor habits
-    suicide_score = 0
-    if academic_pressure >= 4: suicide_score += 1
-    if financial_stress >= 4: suicide_score += 1
-    if family_history == "Yes": suicide_score += 1
-    if dietary_habits == "Unhealthy": suicide_score += 0.5
-    
-    has_suicidal_risk = suicide_score >= 2.5
-    suicide_result = "Suicidal Thoughts Risk: DETECTED" if has_suicidal_risk else "Suicidal Thoughts Risk: LOW"
-    
-    # Combine results
-    final_text = f"{dep_result}\n{suicide_result}"
-    
+    try:
+        # Get predictions from ML models
+        predictions = predict_both(
+            gender=gender,
+            age=age,
+            academic_pressure=academic_pressure,
+            study_satisfaction=study_satisfaction,
+            sleep_duration=sleep_duration,
+            dietary_habits=dietary_habits,
+            study_hours=study_hours,
+            financial_stress=financial_stress,
+            family_history=family_history
+        )
+        
+        # Format depression result
+        dep_prob = predictions['depression_probability']
+        if dep_prob >= 0.65:
+            dep_result = f"Depression Risk: HIGH ({dep_prob:.1%})"
+        elif dep_prob >= 0.35:
+            dep_result = f"Depression Risk: MODERATE ({dep_prob:.1%})"
+        else:
+            dep_result = f"Depression Risk: LOW ({dep_prob:.1%})"
+        
+        # Format suicidal thoughts result
+        sui_prob = predictions['suicidal_probability']
+        if sui_prob >= 0.5:
+            suicide_result = f"Suicidal Thoughts Risk: DETECTED ({sui_prob:.1%})"
+        else:
+            suicide_result = f"Suicidal Thoughts Risk: LOW ({sui_prob:.1%})"
+        
+        # Combine results
+        final_text = f"{dep_result}\n{suicide_result}"
+        
+    except Exception as e:
+        final_text = f"Error: Unable to process prediction. {str(e)}"
 
     # Resources Text
     resources_md = """
@@ -52,6 +62,7 @@ def analyze_risk(
     """
     
     return final_text, resources_md
+
 
 # UI Layout
 with gr.Blocks() as demo:

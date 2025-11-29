@@ -10,6 +10,12 @@ import os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
 from adviceModule_Esin.advice import generate_advice_for_symptom
 
+# Add ml_grace directory to path for model utilities
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', 'ml_grace')))
+from model_utils import predict_both
+from model_utils import load_models
+
+
 # Page Config
 st.set_page_config(
     page_title="Depression Analyzer", 
@@ -36,10 +42,15 @@ if 'step' not in st.session_state:
 if 'data' not in st.session_state:
     st.session_state.data = {}
 
-# --- Mock Backend Logic ---
+# --- ML Model Prediction Function ---
+@st.cache_resource
+def load_ml_models():
+    """Cache the model loading to avoid reloading on every interaction"""
+    return load_models()
+
 def predict_outcomes(data):
     """
-    Simulates a call to a Random Forest model.
+    Use trained ML models to predict depression and suicidal thoughts risk.
     Returns: 
         - dep_prob (float): Probability of Depression
         - dep_label (str)
@@ -47,28 +58,36 @@ def predict_outcomes(data):
         - suicide_prob (float): Probability of Suicidal Thoughts
         - suicide_label (str)
     """
-    time.sleep(2) # Simulate network/processing latency
+    time.sleep(2)  # Simulate processing time for UX
     
-    # --- Depression Risk Heuristic ---
-    score = 0
-    # Academic Factors
-    if data.get('academic_pressure', 0) >= 4: score += 1.5
-    if data.get('study_satisfaction', 0) <= 2: score += 1
-    if data.get('study_hours', 0) > 10: score += 0.5
+    try:
+        # Load models (cached)
+        load_ml_models()
+        
+        # Get predictions from ML models
+        predictions = predict_both(
+            gender=data.get('gender', 'Male'),
+            age=data.get('age', 20),
+            academic_pressure=data.get('academic_pressure', 3),
+            study_satisfaction=data.get('study_satisfaction', 3),
+            sleep_duration=data.get('sleep_quality', 3),  # Using encoded value
+            dietary_habits=data.get('diet_quality', 2),  # Using encoded value
+            study_hours=data.get('study_hours', 5),
+            financial_stress=data.get('financial_stress', 3),
+            family_history=data.get('family_history', 'No')
+        )
+        
+        # Get probabilities
+        dep_prob = predictions['depression_probability']
+        suicide_prob = predictions['suicidal_probability']
+        
+    except Exception as e:
+        # Fallback to simple heuristic if model fails
+        print(f"Model prediction error: {e}")
+        dep_prob = 0.0
+        suicide_prob = 0.0
     
-    # Health Factors
-    if data.get('sleep_quality', 0) <= 2: score += 1.5
-    if data.get('financial_stress', 0) >= 4: score += 1
-    if data.get('family_history') == "Yes": score += 1
-    
-    # Normalize to a probability roughly between 0.1 and 0.9
-    base_prob = 0.15
-    dep_prob = base_prob + (score * 0.12)
-    
-    # Add some random noise
-    dep_prob += np.random.uniform(-0.02, 0.02)
-    dep_prob = min(0.98, max(0.02, dep_prob))
-    
+    # Classify depression risk
     if dep_prob > 0.65:
         dep_label = "High Risk"
         dep_color = "red"
@@ -78,19 +97,8 @@ def predict_outcomes(data):
     else:
         dep_label = "Low Risk"
         dep_color = "green"
-        
-    # --- Suicidal Thoughts Risk Heuristic ---
-    # Correlated with high pressure, financial stress, and family history
-    s_score = 0
-    if data.get('academic_pressure', 0) >= 4: s_score += 1.5
-    if data.get('financial_stress', 0) >= 4: s_score += 1.5
-    if data.get('family_history') == "Yes": s_score += 1.5
-    if data.get('diet_quality', 0) <= 2: s_score += 0.5
     
-    base_s_prob = 0.05
-    suicide_prob = base_s_prob + (s_score * 0.15)
-    suicide_prob = min(0.95, max(0.01, suicide_prob))
-    
+    # Classify suicidal thoughts risk
     if suicide_prob > 0.5:
         suicide_label = "DETECTED"
     else:
@@ -477,7 +485,11 @@ elif st.session_state.step == 4:
 
     st.markdown("---")
     if st.button("🔄 Start New Survey"):
-        # Clear specific keys or just reset step
-        st.session_state.processed = False # Reset flag
+        # Clear all survey-related session state keys
+        if 'processed' in st.session_state:
+            del st.session_state.processed
+        if 'result' in st.session_state:
+            del st.session_state.result
         restart()
         st.rerun()
+

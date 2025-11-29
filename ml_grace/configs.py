@@ -4,7 +4,7 @@ Contains configuration information for easy access and updating
 
 import pandas as pd
 
-data_dir = 'depression-analyzer-website-body/ml_grace/Depression Student Dataset.csv'
+data_dir = 'Depression Student Dataset.csv'
 test_ratio = 0.3
 num_trees = 1000
 
