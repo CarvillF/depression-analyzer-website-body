@@ -30,9 +30,34 @@ def load_models():
     with open(os.path.join(script_dir, 'suicidal_model.pkl'), 'rb') as f:
         suicidal_model = pickle.load(f)
     
-    # Load model info
-    with open(os.path.join(script_dir, 'model_info.pkl'), 'rb') as f:
-        model_info = pickle.load(f)
+    # Load model info from the new separate info files
+    with open(os.path.join(script_dir, 'depression_model_info.pkl'), 'rb') as f:
+        depression_info = pickle.load(f)
+    
+    with open(os.path.join(script_dir, 'suicidal_model_info.pkl'), 'rb') as f:
+        suicidal_info = pickle.load(f)
+    
+    # Create unified model info structure for backward compatibility
+    model_info = {
+        'depression_features': depression_info['feature_columns'],
+        'suicidal_features': suicidal_info['feature_columns'],
+        'encodings': {
+            'Gender': {'Male': 0, 'Female': 1},
+            'Sleep Duration': {
+                'Less than 5 hours': 1,
+                '5-6 hours': 2,
+                '7-8 hours': 3,
+                'More than 8 hours': 4
+            },
+            'Dietary Habits': {'Unhealthy': 1, 'Moderate': 2, 'Healthy': 3},
+            'Have you ever had suicidal thoughts ?': {'No': 0, 'Yes': 1},
+            'Family History of Mental Illness': {'No': 0, 'Yes': 1},
+            'Depression': {'No': 0, 'Yes': 1}
+        },
+        'feature_order': depression_info['feature_columns'],
+        'depression_accuracy': depression_info['accuracy'],
+        'suicidal_accuracy': suicidal_info['accuracy']
+    }
     
     _models_cache = {
         'depression_model': depression_model,
