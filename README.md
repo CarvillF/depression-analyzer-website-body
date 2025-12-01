@@ -8,7 +8,7 @@ We propose an AI-powered early warning system that analyzes anonymous student da
 The ethical implications of following the Al predictions in delicate areas like medicine, and who to blame when something goes wrong. Student data must be anonymized, and participation must be voluntary. AI should never analyze private messages or data without explicit permission.
  
 ## External links
-Video demo: 
+Video demo:  
 Hosted website: https://mental-health-checker.streamlit.app/
 
 ## Installation and setup instructions 
@@ -36,6 +36,11 @@ sys
 
 ## Author(s) and contribution summary
 
-Carlos Vladimir Flores Villacís - Developed and integrated the front end of the application. Refactored code to align with VGC standards and hosted website on streamlit.
-Esin Karapinar - Developed the customized advice module based on user inputs. Assisted Carlos with code functions.  
-Grace Marrone - Developed the machine learning algorithm to make predictions based on user input. Assisted Carlos with code functions.  
+#### Carlos Vladimir Flores Villacís
+Developed and integrated the front end of the application. Refactored code to align with VGC standards and hosted website on streamlit.  
+
+#### Esin Karapinar
+Developed the customized advice module based on user inputs. Assisted Carlos with code functions.  
+
+#### Grace Marrone
+Developed the machine learning algorithm to make predictions based on user input. Assisted Carlos with code functions.  
