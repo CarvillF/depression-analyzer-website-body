@@ -6,7 +6,7 @@ import sys
 import os
 
 # Add ml_grace to path
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', 'ml_grace')))
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'code', 'ml_grace')))
 
 from model_utils import predict_both
 

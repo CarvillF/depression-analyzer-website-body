@@ -3,11 +3,14 @@ import pickle
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score, confusion_matrix, classification_report
+import sys
+
+sys.path.insert(1, '../../data')
 
 from configs import data_dir, test_ratio, num_trees
 
 print("=" * 60)
-print("Training Depression Prediction Model")
+print("Training Suicidal Risk Prediction Model")
 print("=" * 60)
 
 # Prepare data --------------------------------------------------------------------------
@@ -31,8 +34,8 @@ df['Family History of Mental Illness'] = df['Family History of Mental Illness'].
 df['Depression'] = df['Depression'].map({'No': 0, 'Yes': 1})
 print("   ✓ Encoding complete")
 
-# Features: All columns EXCEPT 'Depression' (target) and 'Suicidal Thoughts' (another target)
-# We want to predict depression WITHOUT using suicidal thoughts as a feature
+# Features: All columns EXCEPT 'Have you ever had suicidal thoughts ?' (target) and 'Depression' (another target)
+# We want to predict suicidal thoughts WITHOUT using depression as a feature
 print("\n[3/5] Preparing features and target...")
 feature_columns = [
     'Gender', 'Age', 'Academic Pressure', 'Study Satisfaction',
@@ -41,9 +44,9 @@ feature_columns = [
 ]
 
 X = df[feature_columns]
-y = df['Depression']
+y = df['Have you ever had suicidal thoughts ?']
 print(f"   ✓ Features: {len(feature_columns)} columns")
-print(f"   ✓ Target: Depression")
+print(f"   ✓ Target: Suicidal Thoughts")
 
 # Split the data into test and train sets
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=test_ratio, random_state=42)
@@ -70,12 +73,12 @@ print(f'   {conf_matrix}')
 
 # Other statistics: precision, f1, etc
 print(f'\n   Classification Report:')
-print(classification_report(y_test, y_pred, target_names=['No Depression', 'Depression']))
+print(classification_report(y_test, y_pred, target_names=['No Suicidal Thoughts', 'Suicidal Thoughts']))
 
 # Save the model--------------------------------------------------------------------------
 print("\n" + "=" * 60)
 print("Saving model...")
-model_filename = 'depression_model.pkl'
+model_filename = 'suicidal_model.pkl'
 with open(model_filename, 'wb') as f:
     pickle.dump(model, f)
 print(f"✓ Model saved as '{model_filename}'")
@@ -84,12 +87,12 @@ print(f"✓ Model saved as '{model_filename}'")
 model_info = {
     'feature_columns': feature_columns,
     'accuracy': accuracy,
-    'model_type': 'depression'
+    'model_type': 'suicidal_risk'
 }
-with open('depression_model_info.pkl', 'wb') as f:
+with open('suicidal_model_info.pkl', 'wb') as f:
     pickle.dump(model_info, f)
-print(f"✓ Model info saved as 'depression_model_info.pkl'")
+print(f"✓ Model info saved as 'suicidal_model_info.pkl'")
 
 print("=" * 60)
-print("Depression model training complete!")
+print("Suicidal risk model training complete!")
 print("=" * 60)
